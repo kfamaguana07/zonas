@@ -17,4 +17,6 @@ public interface ZonaServicio {
 
     void activarDesactivar(UUID idZona);
 
+    void eliminarZona(UUID idZona);
+
 }

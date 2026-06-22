@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 
 
@@ -55,6 +56,13 @@ public class ZonaControlador {
     @PatchMapping("/{idZona}/estado")
     public ResponseEntity<Void> activarDesactivar(@PathVariable UUID idZona) {
         zonaServicio.activarDesactivar(idZona);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @DeleteMapping("/{idZona}")
+    public ResponseEntity<Void> eliminarZona(@PathVariable UUID idZona) {
+        zonaServicio.eliminarZona(idZona);
         return ResponseEntity.noContent().build();
     }
     

@@ -1,0 +1,686 @@
+{
+  "info": {
+    "name": "Zonas API - Pruebas Completa",
+    "description": "Colección para probar todos los endpoints con las validaciones implementadas.\n\n## Flujo recomendado:\n1. Crear una zona VIP y una REGULAR\n2. Intentar crear espacio en zona inactiva (debe fallar)\n3. Crear espacio normalmente\n4. Intentar desactivar zona con espacios activos (debe fallar)\n5. Desactivar espacio → Desactivar zona\n6. Intentar crear espacio en zona inactiva (debe fallar)\n\nBase URL: http://localhost:8080",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Zonas",
+      "item": [
+        {
+          "name": "1. Crear zona VIP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('idZonaVIP', json.idZona);",
+                  "    pm.collectionVariables.set('codigoZonaVIP', json.codigo);",
+                  "    console.log('idZonaVIP:', json.idZona);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Zona VIP Central\",\n  \"descripcion\": \"Zona VIP con 20 espacios\",\n  \"tipo\": \"VIP\",\n  \"capacidad\": 20\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas"]
+            }
+          }
+        },
+        {
+          "name": "2. Crear zona REGULAR",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('idZonaREG', json.idZona);",
+                  "    pm.collectionVariables.set('codigoZonaREG', json.codigo);",
+                  "    console.log('idZonaREG:', json.idZona);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Zona Regular Norte\",\n  \"descripcion\": \"Zona regular con 50 espacios\",\n  \"tipo\": \"REGULAR\",\n  \"capacidad\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas"]
+            }
+          }
+        },
+        {
+          "name": "3. ERROR: Crear zona sin nombre",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"   \",\n  \"descripcion\": \"Solo espacios en blanco\",\n  \"tipo\": \"REGULAR\",\n  \"capacidad\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas"]
+            }
+          }
+        },
+        {
+          "name": "4. ERROR: Crear zona nombre duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Zona VIP Central\",\n  \"descripcion\": \"Nombre ya existe\",\n  \"tipo\": \"VIP\",\n  \"capacidad\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas"]
+            }
+          }
+        },
+        {
+          "name": "5. ERROR: Crear zona capacidad 0",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Zona sin capacidad\",\n  \"descripcion\": \"Capacidad 0 invalida\",\n  \"tipo\": \"REGULAR\",\n  \"capacidad\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas"]
+            }
+          }
+        },
+        {
+          "name": "6. ERROR: Crear zona tipo null",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Zona sin tipo\",\n  \"descripcion\": \"Tipo no enviado\",\n  \"capacidad\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas"]
+            }
+          }
+        },
+        {
+          "name": "7. Listar zonas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas"]
+            }
+          }
+        },
+        {
+          "name": "8. Actualizar zona VIP",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Zona VIP Central (Actualizada)\",\n  \"descripcion\": \"Descripcion actualizada\",\n  \"tipo\": \"VIP\",\n  \"capacidad\": 25\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas/{{idZonaVIP}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas", "{{idZonaVIP}}"]
+            }
+          }
+        },
+        {
+          "name": "9. ERROR: Actualizar zona inactiva",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Intento actualizar inactiva\",\n  \"descripcion\": \"Debe fallar\",\n  \"tipo\": \"REGULAR\",\n  \"capacidad\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas/{{idZonaInactiva}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas", "{{idZonaInactiva}}"]
+            }
+          }
+        },
+        {
+          "name": "10. ERROR: Reducir capacidad por debajo de espacios",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Zona VIP Central (Actualizada)\",\n  \"descripcion\": \"Intentar reducir capacidad\",\n  \"tipo\": \"VIP\",\n  \"capacidad\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas/{{idZonaVIP}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas", "{{idZonaVIP}}"]
+            }
+          }
+        },
+        {
+          "name": "11. Desactivar zona REGULAR (debe funcionar si no tiene espacios)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 204) {",
+                  "    pm.collectionVariables.set('idZonaInactiva', pm.collectionVariables.get('idZonaREG'));",
+                  "    console.log('idZonaREG ahora es inactiva');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas/{{idZonaREG}}/estado",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas", "{{idZonaREG}}", "estado"]
+            }
+          }
+        },
+        {
+          "name": "12. Reactivar zona REGULAR",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas/{{idZonaREG}}/estado",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas", "{{idZonaREG}}", "estado"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Espacios",
+      "item": [
+        {
+          "name": "1. Crear espacio en zona VIP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('idEspacio1', json.id);",
+                  "    pm.collectionVariables.set('codigoEspacio1', json.codigo);",
+                  "    console.log('idEspacio1:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idZona\": \"{{idZonaVIP}}\",\n  \"descripcion\": \"Espacio 1 - Moto\",\n  \"tipo\": \"MOTO\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios"]
+            }
+          }
+        },
+        {
+          "name": "2. Crear espacio con código personalizado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('idEspacio2', json.id);",
+                  "    console.log('idEspacio2:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"MI-ESPACIO-001\",\n  \"idZona\": \"{{idZonaVIP}}\",\n  \"descripcion\": \"Espacio con codigo manual\",\n  \"tipo\": \"AUTO\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios"]
+            }
+          }
+        },
+        {
+          "name": "3. ERROR: Crear espacio en zona inactiva",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idZona\": \"{{idZonaInactiva}}\",\n  \"descripcion\": \"Intento en zona inactiva\",\n  \"tipo\": \"AUTO\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios"]
+            }
+          }
+        },
+        {
+          "name": "4. ERROR: Crear espacio tipo null",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idZona\": \"{{idZonaVIP}}\",\n  \"descripcion\": \"Sin tipo\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios"]
+            }
+          }
+        },
+        {
+          "name": "5. ERROR: Crear espacio idZona null",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"Sin zona\",\n  \"tipo\": \"AUTO\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios"]
+            }
+          }
+        },
+        {
+          "name": "6. ERROR: Crear espacio código duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"MI-ESPACIO-001\",\n  \"idZona\": \"{{idZonaVIP}}\",\n  \"descripcion\": \"Codigo repetido\",\n  \"tipo\": \"BUSETA\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios"]
+            }
+          }
+        },
+        {
+          "name": "7. ERROR: Crear espacio sobrepasa capacidad",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idZona\": \"{{idZonaREG}}\",\n  \"descripcion\": \"Llenar hasta sobrepasar\",\n  \"tipo\": \"MOTO\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios"]
+            }
+          }
+        },
+        {
+          "name": "8. Listar espacios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios"]
+            }
+          }
+        },
+        {
+          "name": "9. Actualizar espacio",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"Espacio actualizado - Ahora es Buseta\",\n  \"tipo\": \"BUSETA\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios/{{idEspacio1}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios", "{{idEspacio1}}"]
+            }
+          }
+        },
+        {
+          "name": "10. ERROR: Actualizar espacio en zona inactiva",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"Intento fallido\",\n  \"tipo\": \"MOTO\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios/{{idEspacioZonaInactiva}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios", "{{idEspacioZonaInactiva}}"]
+            }
+          }
+        },
+        {
+          "name": "11. Cambiar estado espacio a OCUPADO",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios/{{idEspacio1}}/estado?estado=OCUPADO",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios", "{{idEspacio1}}", "estado"],
+              "query": [
+                { "key": "estado", "value": "OCUPADO" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "12. Cambiar estado espacio a DISPONIBLE",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios/{{idEspacio1}}/estado?estado=DISPONIBLE",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios", "{{idEspacio1}}", "estado"],
+              "query": [
+                { "key": "estado", "value": "DISPONIBLE" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "13. ERROR: Cambiar a DISPONIBLE espacio en zona inactiva",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios/{{idEspacioZonaInactiva}}/estado?estado=DISPONIBLE",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios", "{{idEspacioZonaInactiva}}", "estado"],
+              "query": [
+                { "key": "estado", "value": "DISPONIBLE" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "14. Eliminar espacio (desactivación lógica)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 204) {",
+                  "    pm.collectionVariables.set('idEspacioInactivo', pm.collectionVariables.get('idEspacio2'));",
+                  "    console.log('idEspacio2 ahora es inactivo');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios/{{idEspacio2}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios", "{{idEspacio2}}"]
+            }
+          }
+        },
+        {
+          "name": "15. ERROR: Eliminar espacio ya inactivo",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios/{{idEspacioInactivo}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios", "{{idEspacioInactivo}}"]
+            }
+          }
+        },
+        {
+          "name": "16. ERROR: Cambiar estado de espacio inactivo",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios/{{idEspacioInactivo}}/estado?estado=DISPONIBLE",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios", "{{idEspacioInactivo}}", "estado"],
+              "query": [
+                { "key": "estado", "value": "DISPONIBLE" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "17. Filtrar espacios por estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios/estado/DISPONIBLE",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios", "estado", "DISPONIBLE"]
+            }
+          }
+        },
+        {
+          "name": "18. Filtrar espacios por zona y estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/espacios/zona/{{idZonaVIP}}/estado/DISPONIBLE",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "espacios", "zona", "{{idZonaVIP}}", "estado", "DISPONIBLE"]
+            }
+          }
+        },
+        {
+          "name": "19. ERROR: Desactivar zona con espacios activos",
+          "description": "Primero desactivar la zona VIP que tiene espacios activos (debe fallar 409)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas/{{idZonaVIP}}/estado",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas", "{{idZonaVIP}}", "estado"]
+            }
+          }
+        },
+        {
+          "name": "20. Flujo completo: desactivar espacio → desactivar zona",
+          "description": "Paso 1: Desactivar todos los espacios de la zona VIP, luego desactivar la zona",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 204) {",
+                  "    console.log('Zona VIP desactivada exitosamente');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/zonas/{{idZonaVIP}}/estado",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "zonas", "{{idZonaVIP}}", "estado"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "idZonaVIP",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idZonaREG",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idZonaInactiva",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "codigoZonaVIP",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "codigoZonaREG",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idEspacio1",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idEspacio2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idEspacioInactivo",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idEspacioZonaInactiva",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "codigoEspacio1",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

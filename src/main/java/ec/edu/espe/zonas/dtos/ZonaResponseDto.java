@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import ec.edu.espe.zonas.entidades.Espacio;
 import ec.edu.espe.zonas.entidades.TipoZona;
 import lombok.AllArgsConstructor;
@@ -29,6 +31,7 @@ public class ZonaResponseDto {
 
     private int capacidad;
 
+    @JsonIgnoreProperties("zona")
     private List<Espacio> espacios;
 
     private LocalDateTime fechaCreacion;

@@ -39,17 +39,45 @@ public class EspacioServicioImpl implements EspacioServicio{
     @Override
     @Transactional
     public EspacioResponseDto crearEspacio(EspacioRequestDto dto) {
- 
-        // 1. Obtener la Zona
+
+        if (dto.getIdZona() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El id de la zona es obligatorio.");
+        }
+
+        if (dto.getTipo() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El tipo de espacio es obligatorio.");
+        }
+
         Zona objZona = zonaRepositorio.findById(dto.getIdZona())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Zona no encontrada con id: " + dto.getIdZona()));
- 
-        // 2. Contar espacios actuales de la Zona
+
+        if (objZona.getEstado() != 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede crear un espacio en la zona '" + objZona.getNombre()
+                            + "' porque se encuentra inactiva.");
+        }
+
+        String codigo = dto.getCodigo();
+        if (codigo != null) {
+            codigo = codigo.trim();
+            if (codigo.isBlank()) {
+                codigo = null;
+            } else if (repositorioEspacio.existsByCodigo(codigo)) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Ya existe un espacio con el código: " + codigo);
+            }
+        }
+
         long espaciosActuales = repositorioEspacio.countByZona_Id(dto.getIdZona());
- 
-        // 3. Validar capacidad (SRP: la regla vive en el servicio, no en el controlador)
+
         if (espaciosActuales >= objZona.getCapacidad()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
@@ -60,19 +88,23 @@ public class EspacioServicioImpl implements EspacioServicio{
                             objZona.getCapacidad(),
                             espaciosActuales));
         }
- 
-        // 4. Construir y persistir el Espacio
+
         Espacio nuevoEspacio = mappers.toEntity(dto);
-        if (nuevoEspacio.getCodigo() == null || nuevoEspacio.getCodigo().isBlank()) {
+        if (codigo == null) {
             String fechaStr = LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyMMdd"));
             nuevoEspacio.setCodigo(String.format("TICK-%s-%d-%s",
                     objZona.getCodigo(), espaciosActuales + 1, fechaStr));
+        } else {
+            nuevoEspacio.setCodigo(codigo);
+        }
+        if (nuevoEspacio.getDescripcion() != null) {
+            nuevoEspacio.setDescripcion(nuevoEspacio.getDescripcion().trim());
         }
         nuevoEspacio.setZona(objZona);
         nuevoEspacio.setEstado(EstadoEspacio.DISPONIBLE);
         nuevoEspacio.setActivo(true);
         nuevoEspacio.setFechaCreacion(LocalDateTime.now());
- 
+
         Espacio espacioGuardado = repositorioEspacio.save(nuevoEspacio);
         return mappers.toResponseDto(espacioGuardado);
     }
@@ -85,11 +117,21 @@ public class EspacioServicioImpl implements EspacioServicio{
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Espacio no encontrado con id: " + idEspacio));
- 
-        if (dto.getDescripcion() != null) espacio.setDescripcion(dto.getDescripcion());
-        if (dto.getTipo() != null)        espacio.setTipo(dto.getTipo());
+
+        if (espacio.getZona().getEstado() != 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede actualizar un espacio en una zona inactiva.");
+        }
+
+        if (dto.getDescripcion() != null) {
+            espacio.setDescripcion(dto.getDescripcion().trim());
+        }
+        if (dto.getTipo() != null) {
+            espacio.setTipo(dto.getTipo());
+        }
         espacio.setFechaModificacion(LocalDateTime.now());
- 
+
         return mappers.toResponseDto(repositorioEspacio.save(espacio));
     }
 
@@ -122,7 +164,23 @@ public class EspacioServicioImpl implements EspacioServicio{
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Espacio no encontrado con id: " + idEspacio));
- 
+
+        if (estado == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El estado es obligatorio.");
+        }
+
+        if (estado == EstadoEspacio.DISPONIBLE && espacio.getZona().getEstado() != 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede marcar como disponible un espacio en una zona inactiva.");
+        }
+
+        if (!espacio.isActivo()) {
+            espacio.setActivo(true);
+        }
+
         espacio.setEstado(estado);
         espacio.setFechaModificacion(LocalDateTime.now());
         return mappers.toResponseDto(repositorioEspacio.save(espacio));

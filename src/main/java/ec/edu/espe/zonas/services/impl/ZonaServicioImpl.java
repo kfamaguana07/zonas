@@ -45,13 +45,35 @@ public class ZonaServicioImpl implements ZonaServicio {
     @Transactional
     public ZonaResponseDto crearZona(ZonaRequestDto request){
 
-        if(repositorioZona.existsByNombre(request.getNombre())){
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"YA EXISTE EL NOMBRE" + request.getNombre());
+        if (request.getTipo() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El tipo de zona es obligatorio.");
         }
+
+        if (request.getCapacidad() < 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La capacidad debe ser al menos 1.");
+        }
+
+        String nombre = request.getNombre() != null ? request.getNombre().trim() : null;
+        if (nombre == null || nombre.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El nombre de la zona es obligatorio.");
+        }
+
+        if (repositorioZona.existsByNombre(nombre)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Ya existe una zona con el nombre: " + nombre);
+        }
+
         Zona objZona = new Zona();
-        objZona.setNombre(request.getNombre());
+        objZona.setNombre(nombre);
         objZona.setCodigo(generarCodigo(request));
-        objZona.setDescripcion(request.getDescripcion());
+        objZona.setDescripcion(request.getDescripcion() != null ? request.getDescripcion().trim() : null);
         objZona.setTipo(request.getTipo());
         objZona.setCapacidad(request.getCapacidad());
         objZona.setEstado(1);
@@ -69,12 +91,41 @@ public class ZonaServicioImpl implements ZonaServicio {
         Zona zona = repositorioZona.findById(idZona)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Zona no encontrada con id: " + idZona));
- 
-        zona.setNombre(request.getNombre());
-        zona.setDescripcion(request.getDescripcion());
+
+        if (zona.getEstado() != 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede actualizar una zona inactiva.");
+        }
+
+        String nombre = request.getNombre() != null ? request.getNombre().trim() : null;
+        if (nombre == null || nombre.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El nombre de la zona es obligatorio.");
+        }
+
+        if (!nombre.equals(zona.getNombre()) && repositorioZona.existsByNombre(nombre)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Ya existe otra zona con el nombre: " + nombre);
+        }
+
+        long espaciosActuales = repositorioEspacio.countByZona_Id(idZona);
+        if (request.getCapacidad() < espaciosActuales) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    String.format(
+                            "No se puede reducir la capacidad a %d porque la zona tiene %d espacio(s) creados.",
+                            request.getCapacidad(), espaciosActuales));
+        }
+
+        zona.setNombre(nombre);
+        zona.setDescripcion(request.getDescripcion() != null ? request.getDescripcion().trim() : null);
+        zona.setTipo(request.getTipo());
         zona.setCapacidad(request.getCapacidad());
         zona.setFechaModificacion(LocalDateTime.now());
- 
+
         return toResponse(repositorioZona.save(zona));
     }
     
@@ -114,6 +165,28 @@ public class ZonaServicioImpl implements ZonaServicio {
     }
 
 
+    @Override
+    @Transactional
+    public void eliminarZona(UUID idZona) {
+        Zona zona = repositorioZona.findById(idZona)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Zona no encontrada con id: " + idZona));
+
+        boolean tieneEspaciosActivos = repositorioEspacio.existsEspaciosActivosPorZona(idZona);
+
+        if (tieneEspaciosActivos) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede eliminar la zona '" + zona.getNombre() +
+                            "' porque tiene espacios activos. " +
+                            "Desactive los espacios primero.");
+        }
+
+        repositorioZona.delete(zona);
+    }
+
+
     // Mapper interno
     private ZonaResponseDto toResponse(Zona objZona){
         return ZonaResponseDto.builder()
@@ -138,7 +211,15 @@ public class ZonaServicioImpl implements ZonaServicio {
         String tipoAbrev = request.getTipo().name().substring(0, 3).toUpperCase();
         long siguiente = repositorioZona.count() + 1;
         String numero = String.format("%02d", siguiente);
-        return prefijo + "-" + tipoAbrev + "-" + numero;
+        String codigo = prefijo + "-" + tipoAbrev + "-" + numero;
+
+        while (repositorioZona.existsByCodigo(codigo)) {
+            siguiente++;
+            numero = String.format("%02d", siguiente);
+            codigo = prefijo + "-" + tipoAbrev + "-" + numero;
+        }
+
+        return codigo;
     }
 
 }

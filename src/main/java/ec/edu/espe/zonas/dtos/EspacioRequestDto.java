@@ -6,7 +6,6 @@ import ec.edu.espe.zonas.entidades.EstadoEspacio;
 import ec.edu.espe.zonas.entidades.TipoEspacio;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,8 +21,6 @@ public class EspacioRequestDto {
     
     private String codigo;
 
-    @NotNull(message = "El id de la zona no puede estar vacio")
-    @NotNull(message = "El ida de la zona es obligatorio")
     private UUID idZona;
 
     private String descripcion;
